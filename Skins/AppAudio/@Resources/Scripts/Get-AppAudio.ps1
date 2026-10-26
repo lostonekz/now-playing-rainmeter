@@ -133,6 +133,52 @@ namespace AppAudio {
         [PreserveSig] int GetMute(out int m);
     }
 
+    public class AppWindow {
+        public long Hwnd;
+        public string Title;
+    }
+
+    // Top-level application windows, used for the fallback title and as the
+    // click target. EnumWindows walks in z-order, so the front-most comes first.
+    public static class Windows {
+        delegate bool EnumProc(IntPtr h, IntPtr l);
+        [DllImport("user32.dll")] static extern bool EnumWindows(EnumProc cb, IntPtr l);
+        [DllImport("user32.dll")] static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)] static extern int GetWindowText(IntPtr h, System.Text.StringBuilder s, int n);
+        [DllImport("user32.dll")] static extern bool IsWindowVisible(IntPtr h);
+        [DllImport("user32.dll")] static extern IntPtr GetWindow(IntPtr h, uint cmd);
+        [DllImport("user32.dll")] static extern int GetWindowLong(IntPtr h, int index);
+
+        const uint GW_OWNER = 4;
+        const int GWL_STYLE = -16, GWL_EXSTYLE = -20;
+        const int WS_CAPTION = 0x00C00000, WS_EX_TOOLWINDOW = 0x80;
+
+        // Unowned, captioned, titled windows of these processes. Visible ones
+        // (minimized included) first; hidden ones after, for apps closed to the tray.
+        public static List<AppWindow> Find(uint[] pids) {
+            var set = new HashSet<uint>(pids);
+            var visible = new List<AppWindow>();
+            var hidden = new List<AppWindow>();
+            EnumWindows((h, l) => {
+                uint pid;
+                GetWindowThreadProcessId(h, out pid);
+                if (!set.Contains(pid)) return true;
+                if (GetWindow(h, GW_OWNER) != IntPtr.Zero) return true;
+                if ((GetWindowLong(h, GWL_STYLE) & WS_CAPTION) != WS_CAPTION) return true;
+                if ((GetWindowLong(h, GWL_EXSTYLE) & WS_EX_TOOLWINDOW) != 0) return true;
+                var sb = new System.Text.StringBuilder(512);
+                if (GetWindowText(h, sb, sb.Capacity) == 0) return true;
+                var w = new AppWindow();
+                w.Hwnd = h.ToInt64();
+                w.Title = sb.ToString();
+                (IsWindowVisible(h) ? visible : hidden).Add(w);
+                return true;
+            }, IntPtr.Zero);
+            visible.AddRange(hidden);
+            return visible;
+        }
+    }
+
     public class Session {
         public uint Pid;
         public float Peak;
@@ -235,6 +281,25 @@ namespace AppAudio {
 }
 '@
 
+. (Join-Path $PSScriptRoot 'BrowserTabs.ps1')
+
+# A tab-strip walk costs ~200 ms of CPU, so reuse the answer for a while.
+$audioTabCacheSeconds = 10
+$audioTabCache = @{}
+
+function Get-CachedAudioTab {
+    param([string]$Name, [System.Diagnostics.Process[]]$Processes)
+    $now = Get-Date
+    $hit = $audioTabCache[$Name]
+    if ($hit -and (($now - $hit.At).TotalSeconds -lt $audioTabCacheSeconds)) { return $hit.Tab }
+    $tab = $null
+    try {
+        $tab = Find-AudioTab @($Processes | Where-Object { $_.ProcessName -eq $Name } | ForEach-Object { $_.Id })
+    } catch { }
+    $audioTabCache[$Name] = @{ At = $now; Tab = $tab }
+    $tab
+}
+
 # --- System media controls (WinRT) ---------------------------------------------------
 
 Add-Type -AssemblyName System.Runtime.WindowsRuntime
@@ -321,10 +386,20 @@ function Remove-AppSuffix {
     $Title
 }
 
-function Get-WindowTitle {
-    param([string]$Name, [System.Diagnostics.Process[]]$Processes)
-    $p = $Processes | Where-Object { $_.ProcessName -eq $Name -and $_.MainWindowTitle } | Select-Object -First 1
-    if ($p) { ConvertTo-Line $p.MainWindowTitle } else { '' }
+# The app's window to show and to bring forward on click. A browser can have
+# several; the one whose title holds the media title is the playing tab's,
+# when that tab is the active one. Otherwise the front-most window.
+function Select-AppWindow {
+    param([string]$Name, [System.Diagnostics.Process[]]$Processes, [string]$MediaTitle)
+    $pids = [uint32[]]@($Processes | Where-Object { $_.ProcessName -eq $Name } | ForEach-Object { $_.Id })
+    if (-not $pids.Count) { return $null }
+    $windows = @([AppAudio.Windows]::Find($pids))
+    if (-not $windows.Count) { return $null }
+    if ($MediaTitle) {
+        $match = $windows | Where-Object { $_.Title.Contains($MediaTitle) } | Select-Object -First 1
+        if ($match) { return $match }
+    }
+    $windows[0]
 }
 
 $lastHeard = @{}
@@ -387,6 +462,9 @@ function Get-Snapshot {
     $rows = foreach ($g in $visible) {
         $isBrowser = $browsers -contains $g.Name.ToLowerInvariant()
         $label = ''; $detail = ''
+        $mediaTitle = if ($media.ContainsKey($g.Name)) { $media[$g.Name].Title } else { '' }
+        $window = Select-AppWindow $g.Name $processes $mediaTitle
+        $hwnd = if ($window) { $window.Hwnd } else { 0 }
         if ($media.ContainsKey($g.Name)) {
             $m = $media[$g.Name]
             $title = ConvertTo-Line $m.Title
@@ -394,8 +472,14 @@ function Get-Snapshot {
             if ($isBrowser)  { $label = 'Tab';   $detail = $title }
             elseif ($artist) { $label = 'Track'; $detail = "$title $([char]0x00B7) $artist" }
             else             { $label = 'Media'; $detail = $title }
+        } elseif ($isBrowser -and ($tab = Get-CachedAudioTab $g.Name $processes)) {
+            # No playing media session - another tab may have taken it. The tab
+            # strip still says which tab is making sound.
+            $label = 'Tab'
+            $detail = ConvertTo-Line $tab.Title
+            $hwnd = $tab.Hwnd
         } else {
-            $title = Remove-AppSuffix (Get-WindowTitle $g.Name $processes) $g.Display
+            $title = if ($window) { Remove-AppSuffix (ConvertTo-Line $window.Title) $g.Display } else { '' }
             if ($title -and $title -ne $g.Display) {
                 $label = if ($isBrowser) { 'Tab' } else { 'Window' }
                 $detail = $title
@@ -410,6 +494,8 @@ function Get-Snapshot {
             Detail = $detail
             Level  = [int][math]::Round($g.Volume * 100)
             State  = $state
+            Hwnd   = $hwnd
+            Proc   = $g.Name
         }
     }
 
@@ -433,6 +519,8 @@ function Write-Snapshot {
         $lines.Add("detail$n=$(if ($r) { $r.Detail })")
         $lines.Add("level$n=$(if ($r) { $r.Level } else { 0 })")
         $lines.Add("state$n=$(if ($r) { $r.State })")
+        $lines.Add("hwnd$n=$(if ($r) { $r.Hwnd } else { 0 })")
+        $lines.Add("proc$n=$(if ($r) { $r.Proc })")
     }
     $text = ($lines -join "`n") + "`n"
     # Write beside and swap in, so WebParser never reads half a file.

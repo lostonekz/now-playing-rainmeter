@@ -46,6 +46,8 @@ $entries = @(
     'Skins/AppAudio/README.md',
     'Skins/AppAudio/@Resources/Variables.inc',
     'Skins/AppAudio/@Resources/Scripts/Get-AppAudio.ps1',
+    'Skins/AppAudio/@Resources/Scripts/BrowserTabs.ps1',
+    'Skins/AppAudio/@Resources/Scripts/Focus-App.ps1',
     'RMSKIN.ini'
 )
 

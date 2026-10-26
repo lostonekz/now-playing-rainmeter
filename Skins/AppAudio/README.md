@@ -15,6 +15,17 @@ Each row shows:
   - `Media`: a media session with a title but no artist.
   - `Window`: the window title, for apps that publish no media info.
 
+**Click a row** to bring that app to the front. A minimized window is restored. For a Chromium
+browser (Chrome, Edge, Brave, Opera, Vivaldi), the click first switches to the tab making the
+sound, even if it's in another window or isn't the active tab. Chrome reports only one media
+session to Windows, the tab that made sound most recently, so a notification ping in another tab
+can take it over. The tab strip's "Audio playing" mark still names the right tab. This relies on
+the browser's English UI text. In another UI language, or in Firefox, the click goes to the
+window instead.
+
+The green dot next to the title turns red if snapshots stop arriving or the script reports an
+error. Hover over it for the reason.
+
 A row stays for `HoldSeconds` (6 s) after its app goes quiet, drawn dim, so pauses don't make it
 flicker. "Playing" means the app's peak meter went above -40 dBFS, which is clearly audible.
 Near-silent streams don't count.
@@ -48,3 +59,5 @@ size (100-250%). Everything else is in `@Resources\Variables.inc`.
 - Six rows. The section header still counts any more beyond that.
 - Firefox's media session id doesn't contain its name, so it is mapped by a known id. Other
   browsers with the same quirk fall back to the window title.
+- Each click starts a short PowerShell helper (`Focus-App.ps1`), so switching takes about half
+  a second.

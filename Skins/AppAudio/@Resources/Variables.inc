@@ -12,6 +12,7 @@ HoldSeconds=6
 
 ; Path to PowerShell script (relative to @Resources folder)
 ScriptPath=#@#Scripts\Get-AppAudio.ps1
+FocusScriptPath=#@#Scripts\Focus-App.ps1
 
 ; Rows the skin has room for. The script is told the same number;
 ; raising it also needs more [SlotN] blocks in AppAudio.ini.
@@ -51,6 +52,10 @@ BarNormalColor=100,180,255,255
 BarQuietColor=90,90,100,255
 BarMutedColor=70,70,78,255
 
+; Row click target: idle has to keep 1 of alpha, or the row stops taking clicks
+RowIdleColor=0,0,0,1
+RowHoverColor=255,255,255,14
+
 ; Accent/border color
 AccentColor=100,100,110,255
 
@@ -77,9 +82,10 @@ ListY=(62*#Scale#)
 SlotHeight=(56*#Scale#)
 BarGap=(4*#Scale#)
 TextGap=(3*#Scale#)
-FooterGap=(8*#Scale#)
-FooterHeight=(52*#Scale#)
+BottomPadding=(8*#Scale#)
 GearOffset=(70*#Scale#)
+HitInset=(4*#Scale#)
+StatusDotOffset=(5*#Scale#)
 
 ; Horizontal layout
 ValueColumn=(48*#Scale#)
@@ -87,8 +93,6 @@ DetailLabelWidth=(44*#Scale#)
 
 ; Horizontal gaps between inline text runs
 GapTiny=(1*#Scale#)
-GapSmall=(3*#Scale#)
-GapMed=(4*#Scale#)
 GapWide=(5*#Scale#)
 GapLabel=(6*#Scale#)
 
@@ -99,5 +103,4 @@ FontSizeTitle=(12*#Scale#)
 FontSizeLabel=(10*#Scale#)
 FontSizeSmall=(9*#Scale#)
 FontSizeSection=(8*#Scale#)
-ErrorBannerHeight=(14*#Scale#)
 SectionHeight=(12*#Scale#)
