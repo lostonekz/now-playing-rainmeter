@@ -23,7 +23,7 @@
     Runs on Windows PowerShell 5.1.
 
 .OUTPUTS
-    Writes key=value lines to %APPDATA%\AppAudio\now.txt. Not JSON: window and track
+    Writes key=value lines to %APPDATA%\NowPlaying\now.txt. Not JSON: window and track
     titles routinely contain quotes, and the WebParser regex would trip over escapes.
 #>
 
@@ -44,7 +44,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$outputDir  = Join-Path $env:APPDATA 'AppAudio'
+$outputDir  = Join-Path $env:APPDATA 'NowPlaying'
 $outputPath = Join-Path $outputDir 'now.txt'
 $utf8NoBom  = New-Object System.Text.UTF8Encoding($false)
 
@@ -71,7 +71,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 
-namespace AppAudio {
+namespace NowPlaying {
     [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")] class MMDeviceEnumerator {}
 
     [Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
@@ -393,7 +393,7 @@ function Select-AppWindow {
     param([string]$Name, [System.Diagnostics.Process[]]$Processes, [string]$MediaTitle)
     $pids = [uint32[]]@($Processes | Where-Object { $_.ProcessName -eq $Name } | ForEach-Object { $_.Id })
     if (-not $pids.Count) { return $null }
-    $windows = @([AppAudio.Windows]::Find($pids))
+    $windows = @([NowPlaying.Windows]::Find($pids))
     if (-not $windows.Count) { return $null }
     if ($MediaTitle) {
         $match = $windows | Where-Object { $_.Title.Contains($MediaTitle) } | Select-Object -First 1
@@ -418,7 +418,7 @@ function Get-Snapshot {
     $byPid = @{}
     foreach ($p in $processes) { $byPid[[uint32]$p.Id] = $p }
 
-    foreach ($s in [AppAudio.Tracker]::Snapshot()) {
+    foreach ($s in [NowPlaying.Tracker]::Snapshot()) {
         if ($s.Pid -eq 0) { continue }
         $proc = $byPid[$s.Pid]
         if (-not $proc) { continue }
@@ -536,16 +536,16 @@ $sampleMs = 100
 $intervalMs = [math]::Max(1, $Interval) * 1000
 
 if ($Once) {
-    [AppAudio.Tracker]::Refresh()
-    $null = [AppAudio.Tracker]::SampleFor($intervalMs, $sampleMs, $null)
+    [NowPlaying.Tracker]::Refresh()
+    $null = [NowPlaying.Tracker]::SampleFor($intervalMs, $sampleMs, $null)
     Write-Snapshot (Get-Snapshot)
     return
 }
 
 # One loop at a time. A newer instance asks the running one to stop and waits for it.
 $created = $false
-$mutex = New-Object System.Threading.Mutex($false, 'Local\AppAudioRainmeter.Run')
-$stop  = New-Object System.Threading.EventWaitHandle($false, 'AutoReset', 'Local\AppAudioRainmeter.Stop', [ref]$created)
+$mutex = New-Object System.Threading.Mutex($false, 'Local\NowPlayingRainmeter.Run')
+$stop  = New-Object System.Threading.EventWaitHandle($false, 'AutoReset', 'Local\NowPlayingRainmeter.Stop', [ref]$created)
 try {
     $owned = $false
     try { $owned = $mutex.WaitOne(0) } catch [System.Threading.AbandonedMutexException] { $owned = $true }
@@ -558,8 +558,8 @@ try {
 
     while ($true) {
         try {
-            [AppAudio.Tracker]::Refresh()
-            if ([AppAudio.Tracker]::SampleFor($intervalMs, $sampleMs, $stop)) { return }
+            [NowPlaying.Tracker]::Refresh()
+            if ([NowPlaying.Tracker]::SampleFor($intervalMs, $sampleMs, $stop)) { return }
             $null = Write-Snapshot (Get-Snapshot)
         } catch {
             $null = Write-Snapshot @() 'error' $_.Exception.Message

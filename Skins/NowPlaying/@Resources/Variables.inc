@@ -1,6 +1,6 @@
 [Variables]
 ; ============================================
-; App Audio Widget - Configuration
+; Now Playing Widget - Configuration
 ; ============================================
 
 ; Seconds between snapshots (default: 2)
@@ -11,11 +11,11 @@ RefreshInterval=2
 HoldSeconds=6
 
 ; Path to PowerShell script (relative to @Resources folder)
-ScriptPath=#@#Scripts\Get-AppAudio.ps1
+ScriptPath=#@#Scripts\Get-NowPlaying.ps1
 FocusScriptPath=#@#Scripts\Focus-App.ps1
 
 ; Rows the skin has room for. The script is told the same number;
-; raising it also needs more [SlotN] blocks in AppAudio.ini.
+; raising it also needs more [SlotN] blocks in NowPlaying.ini.
 MaxSlots=6
 
 ; ============================================

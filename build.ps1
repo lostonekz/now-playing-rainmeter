@@ -19,7 +19,7 @@
 
 .EXAMPLE
     .\build.ps1
-    .\build.ps1 -OutFile dist\AppAudio.rmskin
+    .\build.ps1 -OutFile dist\NowPlaying.rmskin
 #>
 
 [CmdletBinding()]
@@ -37,17 +37,18 @@ $manifest = Join-Path $root 'RMSKIN.ini'
 if (-not (Test-Path $manifest)) { throw "RMSKIN.ini not found at $manifest" }
 $version = (Select-String -Path $manifest -Pattern '^Version=(.+)$').Matches[0].Groups[1].Value.Trim()
 
-if (-not $OutFile) { $OutFile = Join-Path $root "AppAudio_$version.rmskin" }
+if (-not $OutFile) { $OutFile = Join-Path $root "NowPlaying_$version.rmskin" }
 $outDir = Split-Path -Parent $OutFile
 if ($outDir -and -not (Test-Path $outDir)) { New-Item -ItemType Directory -Path $outDir -Force | Out-Null }
 
 $entries = @(
-    'Skins/AppAudio/AppAudio.ini',
-    'Skins/AppAudio/README.md',
-    'Skins/AppAudio/@Resources/Variables.inc',
-    'Skins/AppAudio/@Resources/Scripts/Get-AppAudio.ps1',
-    'Skins/AppAudio/@Resources/Scripts/BrowserTabs.ps1',
-    'Skins/AppAudio/@Resources/Scripts/Focus-App.ps1',
+    'Skins/NowPlaying/NowPlaying.ini',
+    'Skins/NowPlaying/preview.png',
+    'Skins/NowPlaying/README.md',
+    'Skins/NowPlaying/@Resources/Variables.inc',
+    'Skins/NowPlaying/@Resources/Scripts/Get-NowPlaying.ps1',
+    'Skins/NowPlaying/@Resources/Scripts/BrowserTabs.ps1',
+    'Skins/NowPlaying/@Resources/Scripts/Focus-App.ps1',
     'RMSKIN.ini'
 )
 

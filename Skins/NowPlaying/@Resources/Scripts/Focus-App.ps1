@@ -16,7 +16,7 @@
     time, selected, and its window used instead of the handle from the snapshot.
 
 .PARAMETER Hwnd
-    The window handle, as written to now.txt by Get-AppAudio.ps1.
+    The window handle, as written to now.txt by Get-NowPlaying.ps1.
 
 .PARAMETER Process
     The app's process name, as written to now.txt. Browsers get the tab lookup.
@@ -47,7 +47,7 @@ if ($Process -and ($browsers -contains $Process.ToLowerInvariant())) {
 
 if ($Hwnd -eq 0) { return }
 
-Add-Type -Namespace AppAudio -Name Focus -MemberDefinition @'
+Add-Type -Namespace NowPlaying -Name Focus -MemberDefinition @'
 [DllImport("user32.dll")] public static extern bool IsWindow(IntPtr h);
 [DllImport("user32.dll")] public static extern bool IsIconic(IntPtr h);
 [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr h);
@@ -59,16 +59,16 @@ Add-Type -Namespace AppAudio -Name Focus -MemberDefinition @'
 
 $h = [IntPtr]$Hwnd
 # The window may have closed since the last snapshot.
-if (-not [AppAudio.Focus]::IsWindow($h)) { return }
+if (-not [NowPlaying.Focus]::IsWindow($h)) { return }
 
 $SW_RESTORE = 9
-if ([AppAudio.Focus]::IsIconic($h) -or -not [AppAudio.Focus]::IsWindowVisible($h)) {
-    $null = [AppAudio.Focus]::ShowWindow($h, $SW_RESTORE)
+if ([NowPlaying.Focus]::IsIconic($h) -or -not [NowPlaying.Focus]::IsWindowVisible($h)) {
+    $null = [NowPlaying.Focus]::ShowWindow($h, $SW_RESTORE)
 }
 
-if (-not [AppAudio.Focus]::SetForegroundWindow($h) -or [AppAudio.Focus]::GetForegroundWindow() -ne $h) {
+if (-not [NowPlaying.Focus]::SetForegroundWindow($h) -or [NowPlaying.Focus]::GetForegroundWindow() -ne $h) {
     $VK_MENU = 0x12; $KEYEVENTF_KEYUP = 0x2
-    [AppAudio.Focus]::keybd_event($VK_MENU, 0, 0, [UIntPtr]::Zero)
-    [AppAudio.Focus]::keybd_event($VK_MENU, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)
-    $null = [AppAudio.Focus]::SetForegroundWindow($h)
+    [NowPlaying.Focus]::keybd_event($VK_MENU, 0, 0, [UIntPtr]::Zero)
+    [NowPlaying.Focus]::keybd_event($VK_MENU, 0, $KEYEVENTF_KEYUP, [UIntPtr]::Zero)
+    $null = [NowPlaying.Focus]::SetForegroundWindow($h)
 }

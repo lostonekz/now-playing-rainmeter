@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Finds the browser tab that is making sound. Dot-sourced by Get-AppAudio.ps1 and Focus-App.ps1.
+    Finds the browser tab that is making sound. Dot-sourced by Get-NowPlaying.ps1 and Focus-App.ps1.
 
 .DESCRIPTION
     Chromium browsers (Chrome, Edge, Brave, Opera, Vivaldi) put the tab's audio state

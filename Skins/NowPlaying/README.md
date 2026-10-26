@@ -1,4 +1,4 @@
-# App Audio
+# Now Playing
 
 A Rainmeter widget that lists the applications playing audio right now, and what each one is
 playing. Same look as the AI Usage widget: same palette, card, header and footer, and the same
@@ -32,13 +32,13 @@ Near-silent streams don't count.
 
 ## How it works
 
-`@Resources\Scripts\Get-AppAudio.ps1` is one long-running Windows PowerShell 5.1 loop:
+`@Resources\Scripts\Get-NowPlaying.ps1` is one long-running Windows PowerShell 5.1 loop:
 
 1. Lists the Core Audio sessions on every active output device and samples their peak meters
    ten times a second, in compiled C#.
 2. Every `RefreshInterval` seconds, groups the sessions by process name (browsers play through
    helper processes and hold one session per device), matches them to the playing media sessions,
-   and writes `%APPDATA%\AppAudio\now.txt`.
+   and writes `%APPDATA%\NowPlaying\now.txt`.
 3. The skin reads that file every second with WebParser.
 
 `now.txt` is `key=value` lines, not JSON. Titles often contain quotes, and escaped JSON would
