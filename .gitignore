@@ -1,0 +1,17 @@
+# Built packages
+*.rmskin
+build/
+dist/
+
+# The live snapshot the script writes to %APPDATA%\AppAudio - titles of what
+# is playing, which do not belong in the tree.
+now.txt
+now.txt.tmp
+
+# Editor / OS
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+*~
+*.swp
