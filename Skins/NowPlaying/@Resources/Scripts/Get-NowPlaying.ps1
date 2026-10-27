@@ -33,7 +33,7 @@ param(
     [int]$Interval = 2,
 
     # Seconds an app stays listed after its audio goes quiet.
-    [int]$HoldSeconds = 6,
+    [int]$HoldSeconds = 10,
 
     # Number of rows the skin has room for.
     [int]$MaxSlots = 6,

@@ -8,7 +8,7 @@ RefreshInterval=2
 
 ; Seconds an app stays listed after it goes quiet, so pauses between
 ; sentences or songs do not make rows flicker
-HoldSeconds=6
+HoldSeconds=10
 
 ; Path to PowerShell script (relative to @Resources folder)
 ScriptPath=#@#Scripts\Get-NowPlaying.ps1
@@ -84,6 +84,7 @@ BarGap=(4*#Scale#)
 TextGap=(3*#Scale#)
 BottomPadding=(8*#Scale#)
 GearOffset=(70*#Scale#)
+HoldOffset=(118*#Scale#)
 HitInset=(4*#Scale#)
 StatusDotOffset=(5*#Scale#)
 

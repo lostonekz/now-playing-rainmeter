@@ -19,8 +19,8 @@ One row per app making sound, with its volume in the Windows mixer and a line sa
 | `Window` | The window title, for apps that publish no media info |
 
 "Playing" means the app's peak meter went above -40 dBFS, which you can clearly hear. Near-silent
-streams don't count. A row stays for 6 seconds after its app goes quiet, drawn dim, so pauses
-between songs don't make it flicker. An app muted in the mixer shows `muted` in amber.
+streams don't count. A row stays for 10 seconds after its app goes quiet, drawn dim, so pauses
+between songs don't make it flicker. The hourglass in the header changes how long. An app muted in the mixer shows `muted` in amber.
 
 **Click a row** to bring that app forward, restoring it if minimized. For a Chromium browser it
 first switches to the tab making the sound, even if it's in another window or isn't the active
@@ -69,8 +69,10 @@ writes the trailer.
 
 ## Configuration
 
-Click the gear (or right-click the widget) for the refresh interval (1 / 2 / 5 / 10 s) and size
-(100–250%) presets.
+Click the gear or the hourglass in the header (or right-click the widget) for the settings menu:
+refresh interval (1 / 2 / 5 / 10 s), how long an app stays listed after it goes quiet
+(5 / 10 / 20 / 30 / 60 s), and size (100–250%). Rainmeter allows one menu per skin, so both
+header controls open the same one.
 
 Everything else lives in `Skins/NowPlaying/@Resources/Variables.inc`:
 
@@ -78,7 +80,7 @@ Everything else lives in `Skins/NowPlaying/@Resources/Variables.inc`:
 | --- | --- |
 | `Scale` | Master zoom. `1` is the original size, `2` is double. Decimals work. |
 | `RefreshInterval` | Seconds between snapshots. Default 2. |
-| `HoldSeconds` | How long a quiet app stays listed. Default 6. |
+| `HoldSeconds` | How long a quiet app stays listed. Default 10. Also in the header menu: 5 / 10 / 20 / 30 / 60 s. |
 | `MaxSlots` | Rows the skin has room for (6). Raising it also needs more slot blocks in `NowPlaying.ini`. |
 | Colour variables | Background, text, bars, row hover. |
 

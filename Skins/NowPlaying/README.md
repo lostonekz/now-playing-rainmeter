@@ -26,7 +26,7 @@ window instead.
 The green dot next to the title turns red if snapshots stop arriving or the script reports an
 error. Hover over it for the reason.
 
-A row stays for `HoldSeconds` (6 s) after its app goes quiet, drawn dim, so pauses don't make it
+A row stays for `HoldSeconds` (10 s) after its app goes quiet, drawn dim, so pauses don't make it
 flicker. "Playing" means the app's peak meter went above -40 dBFS, which is clearly audible.
 Near-silent streams don't count.
 
@@ -49,7 +49,8 @@ also exits once Rainmeter closes. A watchdog in the skin restarts it if snapshot
 
 ## Settings
 
-Click the gear (or right-click the skin) to change the refresh interval (1 / 2 / 5 / 10 s) and the
+Click the gear or the hourglass (or right-click the skin) to change how long an app stays listed
+after it goes quiet (5 / 10 / 20 / 30 / 60 s), the refresh interval (1 / 2 / 5 / 10 s), and the
 size (100-250%). Everything else is in `@Resources\Variables.inc`.
 
 ## Limits
